@@ -84,7 +84,15 @@ COPY --from=build /usr/local/lib/docker/cli-plugins/docker-buildx /usr/local/lib
 
 RUN install -o root -g root -m 755 docker/* /usr/bin/ && rm -rf docker
 
-RUN apt-get install amazon-ecr-credential-helper -y
+# Install ECR credential helper but reset credsStore to empty so it doesn't
+# become the default Docker credential backend. Without this, docker/login-action
+# fails with "not implemented" on ARC runners because the ecr-login helper
+# intercepts all credential operations. The binary remains available for
+# explicit use when needed.
+RUN apt-get install amazon-ecr-credential-helper -y \
+    && mkdir -p /home/runner/.docker \
+    && echo '{"credsStore":""}' > /home/runner/.docker/config.json \
+    && chown -R runner:docker /home/runner/.docker
 
 RUN curl -fsSL https://github.com/GoogleContainerTools/jib/releases/download/v0.13.0-cli/jib-jre-0.13.0.zip -o jib-cli.zip \
     && unzip jib-cli.zip \
