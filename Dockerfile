@@ -51,7 +51,6 @@ RUN apt-get update -y \
     fontconfig \
     libsodium-dev \
     openjdk-17-jdk \
-    software-properties-common \
     amazon-ecr-credential-helper \
     awscli \
     libgtk2.0-0 \
