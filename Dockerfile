@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/runtime-deps:8.0-jammy AS build
+FROM mcr.microsoft.com/dotnet/runtime-deps:8.0-noble AS build
 
 ARG TARGETOS=linux
 ARG TARGETARCH
@@ -31,39 +31,32 @@ RUN export RUNNER_ARCH=${TARGETARCH} \
     "https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-${TARGETARCH}" \
     && chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
 
-FROM mcr.microsoft.com/dotnet/runtime-deps:8.0-jammy
+FROM mcr.microsoft.com/dotnet/runtime-deps:8.0-noble
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV RUNNER_MANUALLY_TRAP_SIG=1
 ENV ACTIONS_RUNNER_PRINT_LOG_TO_STDOUT=1
 
-# System packages, Cypress dependencies, and dev tools in a single layer
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends \
-    sudo \
-    dphys-swapfile \
-    curl \
-    unzip \
-    zip \
-    git \
-    jq \
-    libfreetype-dev \
-    fontconfig \
-    libsodium-dev \
-    openjdk-17-jdk \
+    sudo dphys-swapfile curl unzip zip git jq \
+    libfreetype-dev fontconfig libsodium-dev \
     amazon-ecr-credential-helper \
-    awscli \
-    libgtk2.0-0 \
-    libgtk-3-0 \
-    libgbm-dev \
-    libnotify-dev \
-    libnss3 \
-    libxss1 \
-    libasound2 \
-    libxtst6 \
-    xauth \
-    xvfb \
+    openjdk-17-jdk \
+    libgtk2.0-0t64 libgtk-3-0t64 libgbm-dev libnotify-dev \
+    libnss3 libxss1 libasound2t64 libxtst6 xauth xvfb \
     && rm -rf /var/lib/apt/lists/*
+
+ARG TARGETARCH
+RUN case "${TARGETARCH}" in \
+      amd64) AWS_ARCH="x86_64" ;; \
+      arm64) AWS_ARCH="aarch64" ;; \
+      *) echo "Unsupported arch: ${TARGETARCH}" && exit 1 ;; \
+    esac \
+    && curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-${AWS_ARCH}.zip" -o /tmp/awscliv2.zip \
+    && unzip -q /tmp/awscliv2.zip -d /tmp \
+    && /tmp/aws/install \
+    && rm -rf /tmp/awscliv2.zip /tmp/aws
 
 RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && groupadd docker --gid 123 \
@@ -92,7 +85,7 @@ RUN curl -fsSL https://github.com/GoogleContainerTools/jib/releases/download/v0.
     && rm jib-cli.zip \
     && ln -s /home/runner/jib-0.13.0/bin/jib /usr/local/bin/jib
 
-ARG NVM_VERSION=0.39.7
+ARG NVM_VERSION=0.40.4
 
 USER runner
 SHELL ["/bin/bash", "--login", "-i", "-o", "pipefail", "-c"]
