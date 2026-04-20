@@ -54,7 +54,6 @@ RUN apt-get update -y \
     software-properties-common \
     amazon-ecr-credential-helper \
     awscli \
-    # Cypress dependencies
     libgtk2.0-0 \
     libgtk-3-0 \
     libgbm-dev \
