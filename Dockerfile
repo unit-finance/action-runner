@@ -39,7 +39,7 @@ ENV ACTIONS_RUNNER_PRINT_LOG_TO_STDOUT=1
 
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends \
-    sudo dphys-swapfile curl unzip zip git jq pigz \
+    sudo dphys-swapfile curl unzip zip git jq pigz python3-venv \
     libfreetype-dev fontconfig libsodium-dev \
     amazon-ecr-credential-helper \
     openjdk-17-jdk \
